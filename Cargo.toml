@@ -1,6 +1,6 @@
 [package]
 name = "cargo-build-dependencies"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["errmac-v"]
 edition = "2018"
 categories = ["development-tools", "development-tools::cargo-plugins"]
