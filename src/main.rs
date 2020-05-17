@@ -19,8 +19,6 @@ fn main() {
         None => "",
     };
 
-    execute_command(Command::new("cargo").arg("update"));
-
     let cargo_toml = get_toml("Cargo.toml");
     let dependencies = parse_dependencies(&cargo_toml);
 
