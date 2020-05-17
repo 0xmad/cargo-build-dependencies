@@ -1,0 +1,18 @@
+[package]
+name = "cargo-build-dependencies"
+version = "0.1.0"
+authors = ["errmac-v"]
+edition = "2018"
+categories = ["development-tools", "development-tools::cargo-plugins"]
+keywords = ["cargo", "cargo-subcommand", "cli", "dependencies", "crates"]
+license = "MIT"
+repository = "https://github.com/errmac-v/cargo-build-dependencies"
+description = """
+A cargo subcommand to build dependencies, helps speed up docker builds by 
+allowing dependencies to be built earlier and cached.
+"""
+readme = "README.md"
+
+[dependencies]
+toml = "0.5.6"
+clap = "2.33.1"
