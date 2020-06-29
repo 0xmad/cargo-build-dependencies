@@ -1,4 +1,4 @@
-# cargo-build-dependenciess
+# cargo-build-dependencies
 
 [![Crates.io](https://img.shields.io/crates/v/cargo-build-dependencies.svg)](https://crates.io/crates/cargo-build-dependencies)
 
