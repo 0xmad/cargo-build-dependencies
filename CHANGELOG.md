@@ -4,9 +4,9 @@
 
 ### Changed
 
-* Add tests / refactoring [#7]
+* Add tests / refactoring [#8]
 
-[#7]: https://github.com/errmac-v/cargo-build-dependencies/pull/7
+[#8]: https://github.com/errmac-v/cargo-build-dependencies/pull/8
 
 ## [0.1.2] - 2020-07-01
 
