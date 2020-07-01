@@ -1,14 +1,13 @@
 use clap::{App, Arg};
-use toml::Value as Toml;
 
 use std::env;
-use std::fs::File;
-use std::io::prelude::*;
 use std::process::Command;
 
+mod package;
+
 fn main() {
-    let matched_args = App::new("cargo build-deps")
-        .arg(Arg::with_name("build-deps"))
+    let matched_args = App::new("cargo build-dependencies")
+        .arg(Arg::with_name("build-dependencies"))
         .arg(Arg::with_name("release").long("release"))
         .arg(Arg::with_name("target").long("target"))
         .get_matches();
@@ -19,8 +18,13 @@ fn main() {
         None => "",
     };
 
-    let cargo_toml = get_toml("Cargo.toml");
-    let dependencies = parse_dependencies(&cargo_toml);
+    let cargo_toml = package::get_toml("Cargo.toml").expect("Can't get Cargo.toml");
+    let cargo_lock = package::get_toml("Cargo.lock").expect("Can't get Cargo.lock");
+    let dependencies = package::get_dependencies(&cargo_toml, &cargo_lock);
+
+    if dependencies.is_empty() {
+        panic!("Can't find dependencies");
+    }
 
     println!("Start building packages");
 
@@ -29,39 +33,6 @@ fn main() {
     }
 
     println!("Finished");
-}
-
-fn get_toml(file_path: &str) -> Toml {
-    let mut toml_file = File::open(file_path).expect(&format!("{} is not available", file_path));
-    let mut toml_string = String::new();
-    toml_file
-        .read_to_string(&mut toml_string)
-        .expect("Can't read file");
-    toml_string.parse().expect("Failed to parse toml")
-}
-
-fn parse_dependencies<'a>(toml: &'a Toml) -> Vec<String> {
-    match toml.get("dependencies") {
-        Some(&Toml::Table(ref pkgs)) => pkgs
-            .iter()
-            .map(|(name, value)| format_package(name, value))
-            .collect(),
-        _ => panic!("Failed to find dependencies in Cargo.toml"),
-    }
-}
-
-fn format_package(name: &String, value: &Toml) -> String {
-    match value {
-        Toml::String(string) => format!("{}:{}", name, string.replace("\"", "")),
-        Toml::Table(table) => {
-            let value = match table.get("version") {
-                Some(v) => v.to_string().replace("\"", ""),
-                None => "".to_string(),
-            };
-            format!("{}:{}", name, value)
-        }
-        _ => panic!("Failed to format package-id"),
-    }
 }
 
 fn build_package(pkg_name: &str, is_release: bool, target: &str) {
@@ -77,7 +48,7 @@ fn build_package(pkg_name: &str, is_release: bool, target: &str) {
     };
 
     let command_with_args = if !target.is_empty() {
-        command_with_args.arg("--target=".to_owned() + target)
+        command_with_args.arg("--target=".to_string() + target)
     } else {
         command_with_args
     };
