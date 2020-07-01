@@ -12,17 +12,24 @@ pub fn get_toml(file_path: &str) -> std::io::Result<Toml> {
 }
 
 pub fn get_dependencies<'a>(cargo_toml: &'a Toml, cargo_lock: &'a Toml) -> Vec<String> {
-    let dependencies = match cargo_toml.get("dependencies") {
+    let dependencies = get_toml_dependencies(cargo_toml);
+    get_lock_dependencies(cargo_lock, &dependencies)
+}
+
+fn get_lock_dependencies<'a>(cargo_lock: &'a Toml, dependencies: &Vec<String>) -> Vec<String> {
+    match cargo_lock.get("package") {
+        Some(&Toml::Array(ref packages)) => get_packages(&packages.clone(), dependencies),
+        Some(_) => vec![],
+        None => vec![],
+    }
+}
+
+fn get_toml_dependencies<'a>(cargo_toml: &'a Toml) -> Vec<String> {
+    match cargo_toml.get("dependencies") {
         Some(&Toml::Table(ref packages)) => packages
             .into_iter()
             .map(|(name, _value)| name.to_string())
             .collect(),
-        Some(_) => vec![],
-        None => vec![],
-    };
-
-    match cargo_lock.get("package") {
-        Some(&Toml::Array(ref packages)) => get_packages(&packages.clone(), &dependencies),
         Some(_) => vec![],
         None => vec![],
     }
@@ -35,7 +42,7 @@ fn get_packages(packages: &Vec<Toml>, dependencies: &Vec<String>) -> Vec<String>
             Toml::Table(map) => {
                 let name = get_string_field(map.get("name"));
                 let version = get_string_field(map.get("version"));
-                if dependencies.contains(&name) {
+                if dependencies.contains(&name.to_string()) {
                     Some(format!("{}:{}", name, version))
                 } else {
                     None
@@ -46,8 +53,9 @@ fn get_packages(packages: &Vec<Toml>, dependencies: &Vec<String>) -> Vec<String>
         .collect()
 }
 
-fn get_string_field<'a>(field: Option<&'a Toml>) -> String {
-    field
-        .map(|n| n.to_string().replace("\"", ""))
-        .unwrap_or_default()
+fn get_string_field<'a>(field: Option<&'a Toml>) -> &str {
+    field.map(|n| n.as_str()).flatten().unwrap_or_default()
 }
+
+#[cfg(test)]
+mod test;
